@@ -1,23 +1,14 @@
-
-
-import { auth, currentUser } from "@clerk/nextjs/server";
+import DashboardClient from "@/components/DashboardClient";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import FileList from "@/components/FileList";
-import FileUploadForm from "@/components/FileUploadForm";
+
 
 export default async function DashboardPage() {
   const { userId } = await auth();
-  const user = await currentUser;
 
   if (!userId) {
-    redirect("/signin");
+    redirect("/signIn");
   }
 
-  return <div className="p-6">
-    <h1>Welcome to your dashboard, user {userId}</h1>
-    <FileList userId = {userId} />
-    <FileUploadForm userId={userId} />
-  </div>;
-
-
+  return <DashboardClient userId={userId} />;
 }

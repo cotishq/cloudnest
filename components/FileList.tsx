@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react";
+import { act, useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import FileIcon from "./FileIcon";
@@ -11,6 +11,10 @@ import { PATCH } from "@/app/api/files/[fileId]/trashed/route";
 import FileTabs from "./FileTabs";
 import { string } from "zod";
 import FolderNavigation from "./FolderNavigation";
+import FolderDialog from "./FolderDialog";
+import FileUploadForm from "./FileUploadForm";
+import axios from "axios";
+import { Input } from "./ui/input";
 
 
 type AppFile = {
@@ -22,6 +26,7 @@ type AppFile = {
     isStarred : boolean;
     isTrash : boolean;
     isFolder : boolean;
+    thumbnailUrl : string;
 };
 
 type FileListProps = {
@@ -38,35 +43,30 @@ export default function FileList({userId} : FileListProps){
     const[activeTab , setActiveTab] = useState("all");
     const[currentFolderId , setCurrentFolderId] = useState<string | null>(null);
     const [folderPath , setFolderPath] = useState<Array<{id : string ; name : string}>>([]);
+    const [searchQuery , setSearchQuery] = useState("");
     
 
-    useEffect(() => {
-        async function fetchFiles() {
-            try {
-                const url = currentFolderId ? `/api/files?userId=${userId}&parentId=${currentFolderId}`: `/api/files?userId=${userId}`;
+    const fetchFiles = useCallback(async () => {
+  setLoading(true);
+  try {
+    const url = currentFolderId
+      ? `/api/files?userId=${userId}&parentId=${currentFolderId}`
+      : `/api/files?userId=${userId}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    setFiles(data);
+  } catch (error) {
+    console.error("Failed to fetch the files", error);
+  } finally {
+    setLoading(false);
+  }
+}, [userId, currentFolderId]);
 
-                const res = await fetch(url);
-
-                const data = await res.json();
-                
-               
-                
+useEffect(() => {
+  fetchFiles();
+}, [fetchFiles]);
 
 
-                setFiles(data);
-                
-            } catch (error) {
-                console.error("Failed to fetch the files",error);
-                
-            }
-            finally{
-                setLoading(false);
-            }
-            
-        }
-
-        fetchFiles();
-    } , [userId , currentFolderId]);
 
 
     const handleDownload = async (file: AppFile) => {
@@ -92,13 +92,12 @@ export default function FileList({userId} : FileListProps){
     const handleStarToggle = async (fileId: string) => {
         try {
 
-            const res = await fetch(`/api/files/${fileId}/starred` , {
-                method : "PATCH"
-            })
+            const res = await axios.patch(`/api/files/${fileId}/starred`);
+            
 
-            if(!res.ok){
-                throw new Error("Failed to toggle star");
-            }
+
+
+            setFiles(prev => prev.map(file => file.id === fileId ? {...file , isStarred : !file.isStarred} : file));
             
         } catch (error) {
             console.error("Error toggling star" , error);
@@ -108,13 +107,10 @@ export default function FileList({userId} : FileListProps){
 
     const handleTrashToggle = async (fileId: string) => {
         try {
-            const res = await fetch(`/api/files/${fileId}/trashed` , {
-                method : "PATCH"
-            })
+            const res = await axios.patch(`/api/files/${fileId}/trashed`);
             
-            if(!res.ok){
-                throw new Error("Failed to toggle Trash");
-            }
+            
+            setFiles(prev => prev.map(file => file.id === fileId?{...file , isTrash : !file.isTrash} : file))
             
         } catch (error) {
 
@@ -125,24 +121,24 @@ export default function FileList({userId} : FileListProps){
 
     const handleDelete = async (fileId: String) => {
         try {
-            const res = await fetch(`/api/files/${fileId}/delete` , {
-                method : "DELETE"
-            });
+            const res = await axios.delete(`/api/files/${fileId}/delete`);
 
-            if(!res.ok){
-                throw new Error("Failed to delete file")
+            setFiles((prev) => prev.filter((file) => file.id !== fileId));
+
+            
             }
 
-            console.log("File deleted Successfully")
-            setFiles((prev) => prev.filter((file) => fileId != file.id));
-
-            
-            
-        } catch (error) {
+            catch (error) {
             console.error("Failed to delete the file" , error)
             
         }
-    }
+
+            
+
+            
+            
+        } 
+    
 
     const handleFolderClick = (folder : AppFile) => {
         setCurrentFolderId(folder.id);
@@ -176,15 +172,15 @@ export default function FileList({userId} : FileListProps){
     }
 
     const filteredFiles = useMemo(() => {
-        switch(activeTab){
-            case "starred" : 
-            return files.filter((file) => file.isStarred && !file.isTrash);
-            case "trash" : 
-            return files.filter((file) => file.isTrash);
-            default : 
-            return files.filter((file) => !file.isTrash)
-        }
-    },[files , activeTab]);
+        return files.
+        filter((file) => {
+            if(activeTab === "starred") return file.isStarred && !file.isTrash;
+            if(activeTab === "trash") return file.isTrash;
+            return !file.isTrash;
+        })
+        .filter((file) => 
+        file.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    },[files , activeTab , searchQuery]);
 
 
 
@@ -205,6 +201,34 @@ export default function FileList({userId} : FileListProps){
             <CardTitle>Your Files</CardTitle>
         </CardHeader>
         <CardContent>
+
+            <div className="flex items-center gap-4 mb-4">
+        <FolderDialog
+          userId={userId}
+          parentId={currentFolderId}
+          onFolderCreated={fetchFiles}
+        />
+        <FileUploadForm userId={userId} parentId={currentFolderId} onUploadComplete={fetchFiles} />
+      </div>
+
+            <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+                {activeTab === "all" && (
+                    <FolderNavigation 
+                    folderPath={folderPath}
+                    navigateUp={navigateUp}
+                    navigateToPathFolder={navigateToPathFolder}
+                    />
+                )}
+
+                <Input
+                type="text"
+                placeholder="Search files or folders..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="max-w-sm my-4"
+                />
+             
             {filteredFiles.length == 0 ? (
                 <div>
                     {activeTab === "starred" && "No starred files"}
@@ -215,15 +239,12 @@ export default function FileList({userId} : FileListProps){
 
                 <>
 
-                <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+                
+                
 
-                {activeTab === "all" && (
-                    <FolderNavigation 
-                    folderPath={folderPath}
-                    navigateUp={navigateUp}
-                    navigateToPathFolder={navigateToPathFolder}
-                    />
-                )}
+
+
+                
 
                 
 
@@ -234,23 +255,41 @@ export default function FileList({userId} : FileListProps){
                 <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Thumbnail</TableHead>
+                        <TableHead>Preview</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Size</TableHead>
                         <TableHead>Download</TableHead>
+                        
 
                     </TableRow>
 
                 </TableHeader>
                 <TableBody>
-                    {files.map((file) =>(
+                    {filteredFiles.map((file) =>(
                         <TableRow key={file.id}
                         className={file.isFolder ? "cursor-pointer hover:bg-muted" : ""}
-                        onClick={() => {
-                            if(file.isFolder) {
-                                navigateToFolder(file.id , file.name);
-                            }
-                        }}>
+                        onClick={() => file.isFolder && handleFolderClick(file)}>
+                            <TableCell>
+                                {file.thumbnailUrl &&(
+                                    <img src={file.thumbnailUrl} alt={file.name} 
+                                    className="w-12 h-12 object-cover rounded"/>
+                                )}
+
+                            </TableCell>
+                        <TableCell>
+                            {file.type.startsWith("image/") || file.type === "application/pdf" ? (
+                                <a href={file.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline">
+                                    Preview
+                                </a>
+                            ) : (
+                                "-"
+                            )}
+                        </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     <FileIcon type={file.type} />
