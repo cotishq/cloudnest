@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { use } from "react";
 
+
 export async function POST(req : NextRequest){
     try {
         const {userId} = await auth();
@@ -11,6 +12,8 @@ export async function POST(req : NextRequest){
                         error : "Unauthorized"
                     } , { status : 401});
                 }
+
+                
                 const body = await req.json();
 
                 const {imagekit , userId : bodyUserId , parenId} =  body;
@@ -42,6 +45,7 @@ export async function POST(req : NextRequest){
                         isFolder : false,
                         isStarred : false,
                         isTrash : false,
+                        isPublic: false
                     },
 
 

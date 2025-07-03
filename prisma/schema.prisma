@@ -29,11 +29,12 @@ model File{
   isFolder     Boolean  @default(false)
   isStarred    Boolean  @default(false)
   isTrash      Boolean  @default(false)
+  isPublic     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
 
-  //Relations
+  
   userId      String
   user        User     @relation(fields: [userId],references: [id])
   parentId    String?

@@ -4,6 +4,8 @@ import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
 import ImageKit from "imagekit";
 import {v4 as uuid} from "uuid";
+import { createUserIfNotExists } from "@/lib/createUserIfNotExists";
+import { create } from "axios";
 
 const imagekit = new ImageKit({
     publicKey : process.env.IMAGEKIT_PUBLIC_KEY || "",
@@ -23,6 +25,8 @@ export async function POST(req : NextRequest){
             error : "Unauthorized"
         } , {status : 401});
     }
+
+    await createUserIfNotExists(userId);
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -99,6 +103,8 @@ export async function POST(req : NextRequest){
             isTrash : false
         },
     });
+
+    console.log("file uploaded" , newFile );
 
     return NextResponse.json(newFile);
 

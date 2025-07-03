@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import FileIcon from "./FileIcon";
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "./ui/button";
-import { Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
+import { ClipboardCopy, Link, Pencil, Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
 import { PATCH } from "@/app/api/files/[fileId]/trashed/route";
 import FileTabs from "./FileTabs";
 import { string } from "zod";
@@ -15,9 +15,13 @@ import FolderDialog from "./FolderDialog";
 import FileUploadForm from "./FileUploadForm";
 import axios from "axios";
 import { Input } from "./ui/input";
+import { FileType } from "imagekit/dist/libs/interfaces";
+import { RenameDialog } from "./RenameDialog";
+import { toast } from "sonner";
+import { StorageBar } from "./StorageBarProps";
 
 
-type AppFile = {
+export type AppFile = {
     id : string;
     name : string ;
     type : string;
@@ -26,6 +30,8 @@ type AppFile = {
     isStarred : boolean;
     isTrash : boolean;
     isFolder : boolean;
+    isPublic: boolean;
+    
     thumbnailUrl : string;
 };
 
@@ -44,6 +50,8 @@ export default function FileList({userId} : FileListProps){
     const[currentFolderId , setCurrentFolderId] = useState<string | null>(null);
     const [folderPath , setFolderPath] = useState<Array<{id : string ; name : string}>>([]);
     const [searchQuery , setSearchQuery] = useState("");
+    const [editingFile , setEditingFile] = useState<AppFile | null>(null);
+    const [newName , setNewName] = useState("");
     
 
     const fetchFiles = useCallback(async () => {
@@ -54,7 +62,11 @@ export default function FileList({userId} : FileListProps){
       : `/api/files?userId=${userId}`;
     const res = await fetch(url);
     const data = await res.json();
+    
+    
     setFiles(data);
+
+    
   } catch (error) {
     console.error("Failed to fetch the files", error);
   } finally {
@@ -137,7 +149,32 @@ useEffect(() => {
 
             
             
-        } 
+        }
+
+        const handleRename = async(fileId : string , newName : string)=>{
+            try {
+                const res = await fetch(`api/files/${fileId}/rename`,{
+                    method : "PATCH",
+                    headers : {"Content-Type" : "application/json"},
+                    body : JSON.stringify({name : newName}),
+                });
+                if(!res.ok) throw new Error("Failed to rename");
+
+                const updatedFile = await res.json();
+
+                setFiles((prevFiles) => prevFiles.map((file) => 
+                file.id === updatedFile.id?{...file , name: updatedFile.name}: file))
+
+                toast.success("file renamed")
+                
+            } catch (error) {
+                console.error(error);
+                toast.error("Rename failed")
+                
+            }
+        }
+        
+       
     
 
     const handleFolderClick = (folder : AppFile) => {
@@ -193,6 +230,14 @@ useEffect(() => {
 
     if(loading) return <p className="text-sm p-4">Loading files...</p>
 
+    const totalSizeBytes = files
+    .filter(file => !file.isTrash && !file.isFolder)
+    .reduce((acc , file) => acc + file.size,0);
+
+    const totalSizeMB = totalSizeBytes / (1024 * 1024);
+
+    const MAX_STORAGE_MB = 100;
+
     
 
     return (
@@ -210,6 +255,8 @@ useEffect(() => {
         />
         <FileUploadForm userId={userId} parentId={currentFolderId} onUploadComplete={fetchFiles} />
       </div>
+
+     
 
             <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -238,6 +285,8 @@ useEffect(() => {
             ) : (
 
                 <>
+
+                <StorageBar usedMB={totalSizeMB} maxMB={MAX_STORAGE_MB} />
 
                 
                 
@@ -332,6 +381,70 @@ useEffect(() => {
                                     ) }
                                     
                                 </Button>
+                                <Button 
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                    
+                                    setEditingFile(file);
+                                    setNewName(file.name)
+                                }}
+                                >
+                                    <Pencil className="w-4 h-4 text-gray-5500" />
+                                </Button>
+
+                                {file.isPublic ? (
+                                <>
+                                    <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={async () => {
+                                        const res = await fetch(`/api/files/${file.id}/share`, { method: "PATCH" });
+                                        const updated = await res.json();
+                                        setFiles((prev) =>
+                                        prev.map((f) =>
+                                            f.id === file.id ? { ...f, isPublic: updated.isPublic } : f
+                                        )
+                                        );
+                                        toast.success("File is now private");
+                                    }}
+                                    >
+                                    <Link className="w-4 h-4 text-blue-600" />
+                                    </Button>
+
+                                    <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        const shareUrl = `${window.location.origin}/share/${file.id}`;
+                                        navigator.clipboard.writeText(shareUrl);
+                                        toast.success("Link copied to clipboard!");
+                                    }}
+                                    >
+                                    <ClipboardCopy className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </>
+                                ) : (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={async () => {
+                                    const res = await fetch(`/api/files/${file.id}/share`, { method: "PATCH" });
+                                    const updated = await res.json();
+                                    setFiles((prev) =>
+                                        prev.map((f) =>
+                                        f.id === file.id ? { ...f, isPublic: updated.isPublic } : f
+                                        )
+                                    );
+                                    toast.success("File is now public");
+                                    }}
+                                >
+                                    <Link className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                                )}
+
+
+                                
 
                                 {activeTab == "trash" && (
                                     <Button 
@@ -356,6 +469,14 @@ useEffect(() => {
                 
                 
             </Table>
+
+             <RenameDialog 
+             file={editingFile}
+             newName={newName}
+             setNewName={setNewName}
+             onRename={handleRename}
+             onClose={()=>setEditingFile(null)}
+               />
                 
                 </>
 

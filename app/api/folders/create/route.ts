@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { error } from "console";
 import { NextRequest, NextResponse } from "next/server";
+import { createUserIfNotExists } from "@/lib/createUserIfNotExists";
 
 import {v4 as uuidv4} from "uuid";
 
@@ -14,6 +15,8 @@ export async function POST(req : NextRequest){
                 
             } , {status : 401});
         }
+
+        await createUserIfNotExists(userId);
         const body = await req.json();
         const {name , userId : bodyUserId , parentId = null} = body;
 
@@ -59,6 +62,7 @@ export async function POST(req : NextRequest){
                 isFolder : true,
                 isStarred : false,
                 isTrash: false,
+                
 
             },
         });
