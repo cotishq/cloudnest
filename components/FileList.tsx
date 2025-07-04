@@ -18,22 +18,13 @@ import { Input } from "./ui/input";
 import { FileType } from "imagekit/dist/libs/interfaces";
 import { RenameDialog } from "./RenameDialog";
 import { toast } from "sonner";
+
 import { StorageBar } from "./StorageBarProps";
+import { File } from "@prisma/client";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 
-export type AppFile = {
-    id : string;
-    name : string ;
-    type : string;
-    size : number;
-    fileUrl : string;
-    isStarred : boolean;
-    isTrash : boolean;
-    isFolder : boolean;
-    isPublic: boolean;
-    
-    thumbnailUrl : string;
-};
+
 
 type FileListProps = {
     userId : string;
@@ -44,13 +35,13 @@ type FileListProps = {
 
 
 export default function FileList({userId} : FileListProps){
-    const[files , setFiles] = useState<AppFile[]>([]);
+    const[files , setFiles] = useState<File[]>([]);
     const[loading , setLoading] = useState(true);
     const[activeTab , setActiveTab] = useState("all");
     const[currentFolderId , setCurrentFolderId] = useState<string | null>(null);
     const [folderPath , setFolderPath] = useState<Array<{id : string ; name : string}>>([]);
     const [searchQuery , setSearchQuery] = useState("");
-    const [editingFile , setEditingFile] = useState<AppFile | null>(null);
+    const [editingFile , setEditingFile] = useState<File | null>(null);
     const [newName , setNewName] = useState("");
     
 
@@ -69,6 +60,8 @@ export default function FileList({userId} : FileListProps){
     
   } catch (error) {
     console.error("Failed to fetch the files", error);
+    toast.error("We couldnt load your files");
+    
   } finally {
     setLoading(false);
   }
@@ -78,10 +71,28 @@ useEffect(() => {
   fetchFiles();
 }, [fetchFiles]);
 
+const filteredFiles = useMemo(() => {
+        return files.
+        filter((file) => {
+            if(activeTab === "starred") return file.isStarred && !file.isTrash;
+            if(activeTab === "trash") return file.isTrash;
+            return !file.isTrash;
+        })
+        .filter((file) => 
+        file.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    },[files , activeTab , searchQuery]);
+
+const trashCount = useMemo(() => {
+    return files.filter((file) => file.isTrash).length;
+  }, [files]);
+
+  const starredCount = useMemo(() => {
+    return files.filter((file) => file.isStarred && !file.isTrash).length;
+  }, [files]);
 
 
 
-    const handleDownload = async (file: AppFile) => {
+    const handleDownload = async (file: File) => {
         try {
             const response = await fetch(file.fileUrl);
             const blob = await response.blob();
@@ -94,6 +105,11 @@ useEffect(() => {
             link.click();
             link.remove();
             URL.revokeObjectURL(url);
+
+            toast.success("Download succeed");
+
+
+           
             
         } catch (error) {
             console.error("Failed to download file " , error);
@@ -110,6 +126,16 @@ useEffect(() => {
 
 
             setFiles(prev => prev.map(file => file.id === fileId ? {...file , isStarred : !file.isStarred} : file));
+
+            const file = files.find((f) => f.id === fileId);
+
+            toast(
+            `"${file?.name}" has been ${
+                file?.isStarred ? "removed from" : "added to"
+            } your starred files`
+            );
+
+            
             
         } catch (error) {
             console.error("Error toggling star" , error);
@@ -122,9 +148,22 @@ useEffect(() => {
             const res = await axios.patch(`/api/files/${fileId}/trashed`);
             
             
-            setFiles(prev => prev.map(file => file.id === fileId?{...file , isTrash : !file.isTrash} : file))
+            setFiles(prev => prev.map(file => file.id === fileId?{...file , isTrash : !file.isTrash} : file));
+
+            const file = files.find((f) => f.id === fileId);
+
+                if (file) {
+                if (!file.isTrash) {
+                    toast.warning(`"${file.name}" moved to Trash`);
+                } else {
+                    toast.success(`"${file.name}" restored`);
+                }
+                }
+
+
             
         } catch (error) {
+            toast.error("cannot toggle the trash")
 
             console.error("Error toggling Trash")
             
@@ -137,11 +176,15 @@ useEffect(() => {
 
             setFiles((prev) => prev.filter((file) => file.id !== fileId));
 
+            toast.success("File permanently deleted");
+
             
             }
 
             catch (error) {
+            toast.error("Error while deleting the file")
             console.error("Failed to delete the file" , error)
+            
             
         }
 
@@ -165,7 +208,7 @@ useEffect(() => {
                 setFiles((prevFiles) => prevFiles.map((file) => 
                 file.id === updatedFile.id?{...file , name: updatedFile.name}: file))
 
-                toast.success("file renamed")
+                toast.success("File renamed")
                 
             } catch (error) {
                 console.error(error);
@@ -177,7 +220,7 @@ useEffect(() => {
        
     
 
-    const handleFolderClick = (folder : AppFile) => {
+    const handleFolderClick = (folder : File) => {
         setCurrentFolderId(folder.id);
         setFolderPath([...folderPath , {id: folder.id , name : folder.name}]);
     }
@@ -208,16 +251,7 @@ useEffect(() => {
         
     }
 
-    const filteredFiles = useMemo(() => {
-        return files.
-        filter((file) => {
-            if(activeTab === "starred") return file.isStarred && !file.isTrash;
-            if(activeTab === "trash") return file.isTrash;
-            return !file.isTrash;
-        })
-        .filter((file) => 
-        file.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    },[files , activeTab , searchQuery]);
+    
 
 
 
@@ -299,17 +333,18 @@ useEffect(() => {
 
                 
 
-
-
-                <Table>
+               <Card className="mt-4 rounded-2xl shadow-sm border">
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <Table>
                 <TableHeader>
-                    <TableRow>
-                        <TableHead>Thumbnail</TableHead>
-                        <TableHead>Preview</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Size</TableHead>
-                        <TableHead>Download</TableHead>
+                    <TableRow className="hover:bg-accent trasition duration-150">
+                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Thumbnail</TableHead>
+                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Preview</TableHead>
+                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Name</TableHead>
+                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Type</TableHead>
+                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Size</TableHead>
+                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Download</TableHead>
                         
 
                     </TableRow>
@@ -320,14 +355,14 @@ useEffect(() => {
                         <TableRow key={file.id}
                         className={file.isFolder ? "cursor-pointer hover:bg-muted" : ""}
                         onClick={() => file.isFolder && handleFolderClick(file)}>
-                            <TableCell>
+                            <TableCell className="px-4 py-3 text-sm align-middle">
                                 {file.thumbnailUrl &&(
                                     <img src={file.thumbnailUrl} alt={file.name} 
                                     className="w-12 h-12 object-cover rounded"/>
                                 )}
 
                             </TableCell>
-                        <TableCell>
+                        <TableCell className="px-4 py-3 text-sm align-middle">
                             {file.type.startsWith("image/") || file.type === "application/pdf" ? (
                                 <a href={file.fileUrl}
                                 target="_blank"
@@ -339,24 +374,33 @@ useEffect(() => {
                                 "-"
                             )}
                         </TableCell>
-                            <TableCell>
+                            <TableCell className="px-4 py-3 text-sm align-middle">
                                 <div className="flex items-center gap-2">
                                     <FileIcon type={file.type} />
                                     <span >{file.name}</span>
                                 </div>
                             </TableCell>
-                            <TableCell>{file.type}</TableCell>
-                            <TableCell>{(file.size / 1024).toFixed(1)} KB</TableCell>
-                            <TableCell>
+                            <TableCell className="px-4 py-3 text-sm align-middle">{file.type}</TableCell>
+                            <TableCell className="px-4 py-3 text-sm align-middle">{(file.size / 1024).toFixed(1)} KB</TableCell>
+                            <TableCell className="px-4 py-3 text-sm align-middle" >
+                            
                                 <button className="text-blue-600 hover:underline" onClick={() => handleDownload(file)}>
                                     Download
                                 </button>
                             </TableCell>
-                            <TableCell className="text-center">
-                                <Button 
+                            <TableCell className="px-4 py-3 text-sm align-middle">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button 
                                 variant="ghost"
                                 size= "icon"
-                                onClick={() => handleStarToggle(file.id)}
+
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStarToggle(file.id)
+                                    
+
+                                }}
                                 >
                                     {file.isStarred ? (
                                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
@@ -365,14 +409,25 @@ useEffect(() => {
                                     ) }
                                     
                                 </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {file.isStarred ? "Remove from Starred" : "Add to Starred"}
+                                    </TooltipContent>
+                                </Tooltip>
                                 
 
                             </TableCell>
-                            <TableCell className="text-center">
-                                <Button 
+                            <TableCell className="px-4 py-3 text-sm align-middle">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button 
                                 variant="ghost"
                                 size= "icon"
-                                onClick={() => handleTrashToggle(file.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleTrashToggle(file.id)
+
+                                }}
                                 >
                                     {file.isTrash ? (
                                         <Undo2 className="w-4 h-4 text-gray-500" />
@@ -381,10 +436,18 @@ useEffect(() => {
                                     ) }
                                     
                                 </Button>
-                                <Button 
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {file.isTrash ? "Remove from trash" : "Add to trash"}
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button 
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => {
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     
                                     setEditingFile(file);
                                     setNewName(file.name)
@@ -392,13 +455,22 @@ useEffect(() => {
                                 >
                                     <Pencil className="w-4 h-4 text-gray-5500" />
                                 </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Rename</p>
+                                    </TooltipContent>
+                                </Tooltip>
 
                                 {file.isPublic ? (
                                 <>
-                                    <Button
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={async () => {
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
+
                                         const res = await fetch(`/api/files/${file.id}/share`, { method: "PATCH" });
                                         const updated = await res.json();
                                         setFiles((prev) =>
@@ -411,11 +483,20 @@ useEffect(() => {
                                     >
                                     <Link className="w-4 h-4 text-blue-600" />
                                     </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Make private</p>
+                                        </TooltipContent>
+                                    </Tooltip>
 
-                                    <Button
+                                   <Tooltip>
+                                    <TooltipTrigger asChild>
+                                         <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+
                                         const shareUrl = `${window.location.origin}/share/${file.id}`;
                                         navigator.clipboard.writeText(shareUrl);
                                         toast.success("Link copied to clipboard!");
@@ -423,12 +504,20 @@ useEffect(() => {
                                     >
                                     <ClipboardCopy className="w-4 h-4 text-muted-foreground" />
                                     </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Copy Link</p>
+                                    </TooltipContent>
+                                   </Tooltip>
                                 </>
                                 ) : (
-                                <Button
+                               <Tooltip>
+                                <TooltipTrigger asChild>
+                                     <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={async () => {
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
                                     const res = await fetch(`/api/files/${file.id}/share`, { method: "PATCH" });
                                     const updated = await res.json();
                                     setFiles((prev) =>
@@ -441,6 +530,11 @@ useEffect(() => {
                                 >
                                     <Link className="w-4 h-4 text-muted-foreground" />
                                 </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Make public</p>
+                                </TooltipContent>
+                               </Tooltip>
                                 )}
 
 
@@ -469,6 +563,13 @@ useEffect(() => {
                 
                 
             </Table>
+
+
+                    </div>
+                </CardContent>
+               </Card>
+
+                
 
              <RenameDialog 
              file={editingFile}

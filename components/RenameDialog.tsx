@@ -1,12 +1,12 @@
 import { DialogClose, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
-import { AppFile } from "./FileList";
+import { File } from "@prisma/client";
 import { Dialog, DialogFooter, DialogHeader } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
 
 interface RenameDialogProps{
-    file : AppFile | null;
+    file : File | null;
     newName : string;
     setNewName : (val : string) => void;
     onRename : (id: string , newName : string) => void;
@@ -19,7 +19,7 @@ export const RenameDialog =  ({file , newName , setNewName , onRename , onClose}
         <Dialog open={!!file} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Rename{file?.name}"</DialogTitle>
+                    <DialogTitle>Rename {file?.name}</DialogTitle>
                 </DialogHeader>
 
                 <Input 
