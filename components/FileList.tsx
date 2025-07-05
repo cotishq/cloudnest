@@ -4,30 +4,37 @@ import { act, useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import FileIcon from "./FileIcon";
-import { useAuth } from "@clerk/nextjs";
+
 import { Button } from "./ui/button";
-import { ClipboardCopy, Link, Pencil, Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
-import { PATCH } from "@/app/api/files/[fileId]/trashed/route";
+import { ClipboardCopy, Download, GripHorizontal, Link, MoreVertical, Pencil, Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
+
 import FileTabs from "./FileTabs";
-import { string } from "zod";
+
 import FolderNavigation from "./FolderNavigation";
 import FolderDialog from "./FolderDialog";
 import FileUploadForm from "./FileUploadForm";
 import axios from "axios";
 import { Input } from "./ui/input";
-import { FileType } from "imagekit/dist/libs/interfaces";
+
 import { RenameDialog } from "./RenameDialog";
 import { toast } from "sonner";
 
 import { StorageBar } from "./StorageBarProps";
 import { File } from "@prisma/client";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuContent } from "./ui/dropdown-menu";
+import PreviewDialog from "./PreviewDialog";
+import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 
 
 
 type FileListProps = {
     userId : string;
+   
+
 }
 
 
@@ -37,12 +44,17 @@ type FileListProps = {
 export default function FileList({userId} : FileListProps){
     const[files , setFiles] = useState<File[]>([]);
     const[loading , setLoading] = useState(true);
-    const[activeTab , setActiveTab] = useState("all");
+    
     const[currentFolderId , setCurrentFolderId] = useState<string | null>(null);
     const [folderPath , setFolderPath] = useState<Array<{id : string ; name : string}>>([]);
     const [searchQuery , setSearchQuery] = useState("");
     const [editingFile , setEditingFile] = useState<File | null>(null);
     const [newName , setNewName] = useState("");
+    
+    const searchParams = useSearchParams();
+    const view = searchParams.get("view") || "all";
+
+
     
 
     const fetchFiles = useCallback(async () => {
@@ -74,13 +86,13 @@ useEffect(() => {
 const filteredFiles = useMemo(() => {
         return files.
         filter((file) => {
-            if(activeTab === "starred") return file.isStarred && !file.isTrash;
-            if(activeTab === "trash") return file.isTrash;
+            if(view === "starred") return file.isStarred && !file.isTrash;
+            if(view === "trash") return file.isTrash;
             return !file.isTrash;
         })
         .filter((file) => 
         file.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    },[files , activeTab , searchQuery]);
+    },[files , view , searchQuery]);
 
 const trashCount = useMemo(() => {
     return files.filter((file) => file.isTrash).length;
@@ -275,26 +287,34 @@ const trashCount = useMemo(() => {
     
 
     return (
+        
     <Card>
-        <CardHeader>
-            <CardTitle>Your Files</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardHeader className="flex flex-row items-center justify-between">
+            
+            <CardTitle className="text-xl font-semibold mb-4 capitalize">{view} Files</CardTitle>
 
-            <div className="flex items-center gap-4 mb-4">
-        <FolderDialog
+            <div className="flex items-center gap-2">
+                <FolderDialog
           userId={userId}
           parentId={currentFolderId}
           onFolderCreated={fetchFiles}
         />
+
         <FileUploadForm userId={userId} parentId={currentFolderId} onUploadComplete={fetchFiles} />
-      </div>
+
+
+
+            </div>
+        </CardHeader>
+
+        <CardContent>
+        
 
      
 
-            <FileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            
 
-                {activeTab === "all" && (
+                {view === "all" && (
                     <FolderNavigation 
                     folderPath={folderPath}
                     navigateUp={navigateUp}
@@ -307,20 +327,25 @@ const trashCount = useMemo(() => {
                 placeholder="Search files or folders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm my-4"
+                className="max-w-sm mb-4"
                 />
              
             {filteredFiles.length == 0 ? (
                 <div>
-                    {activeTab === "starred" && "No starred files"}
-                    {activeTab === "trash" && "Trash is empty"}
-                    {activeTab === "all" && "No files found"}
+                    {view === "starred" && "No starred files"}
+                    {view === "trash" && "Trash is empty"}
+                    {view === "all" && "No files found"}
                 </div>
             ) : (
 
                 <>
 
-                <StorageBar usedMB={totalSizeMB} maxMB={MAX_STORAGE_MB} />
+                {view === "all" && (
+                    <div className="mt-4">
+                        <StorageBar usedMB={totalSizeMB} maxMB={MAX_STORAGE_MB} />
+
+                    </div>
+                )} 
 
                 
                 
@@ -333,18 +358,19 @@ const trashCount = useMemo(() => {
 
                 
 
-               <Card className="mt-4 rounded-2xl shadow-sm border">
+               <Card className="mt-4 rounded-2xl shadow-sm">
                 <CardContent className="p-0">
                     <div className="overflow-x-auto">
                         <Table>
                 <TableHeader>
                     <TableRow className="hover:bg-accent trasition duration-150">
-                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Thumbnail</TableHead>
-                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Preview</TableHead>
-                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Name</TableHead>
-                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Type</TableHead>
-                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Size</TableHead>
-                        <TableHead className="bg-muted text-xs uppercase text-muted-foreground">Download</TableHead>
+                        <TableHead className="w-[50px]">Thumbnail</TableHead>
+                        <TableHead className="w-[100px]">Preview</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Size</TableHead>
+                        <TableHead className="text-center">Download</TableHead>
+                        <TableHead className="text-right pr-8">Actions</TableHead>
                         
 
                     </TableRow>
@@ -353,7 +379,8 @@ const trashCount = useMemo(() => {
                 <TableBody>
                     {filteredFiles.map((file) =>(
                         <TableRow key={file.id}
-                        className={file.isFolder ? "cursor-pointer hover:bg-muted" : ""}
+                        className={cn("group transition hover:bg-muted",
+                            file.isFolder ? "cursor-pointer" : "")}
                         onClick={() => file.isFolder && handleFolderClick(file)}>
                             <TableCell className="px-4 py-3 text-sm align-middle">
                                 {file.thumbnailUrl &&(
@@ -364,32 +391,39 @@ const trashCount = useMemo(() => {
                             </TableCell>
                         <TableCell className="px-4 py-3 text-sm align-middle">
                             {file.type.startsWith("image/") || file.type === "application/pdf" ? (
-                                <a href={file.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline">
-                                    Preview
-                                </a>
-                            ) : (
-                                "-"
-                            )}
+                        <PreviewDialog
+                            fileName={file.name}
+                            fileUrl={file.fileUrl}
+                            type={file.type}
+                        />
+                        ) : (
+                        "-"
+                        )}
                         </TableCell>
                             <TableCell className="px-4 py-3 text-sm align-middle">
                                 <div className="flex items-center gap-2">
                                     <FileIcon type={file.type} />
-                                    <span >{file.name}</span>
+                                    <span className="truncate">{file.name}</span>
                                 </div>
                             </TableCell>
                             <TableCell className="px-4 py-3 text-sm align-middle">{file.type}</TableCell>
                             <TableCell className="px-4 py-3 text-sm align-middle">{(file.size / 1024).toFixed(1)} KB</TableCell>
-                            <TableCell className="px-4 py-3 text-sm align-middle" >
+                            <TableCell className="text-center" >
                             
                                 <button className="text-blue-600 hover:underline" onClick={() => handleDownload(file)}>
-                                    Download
+                                    <Download className="w-4 h-4 " />
                                 </button>
                             </TableCell>
-                            <TableCell className="px-4 py-3 text-sm align-middle">
-                                <Tooltip>
+                            <TableCell className="text-right pr-8">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <GripHorizontal className="w-4 h-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem>
+                                            <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button 
                                 variant="ghost"
@@ -414,11 +448,10 @@ const trashCount = useMemo(() => {
                                         {file.isStarred ? "Remove from Starred" : "Add to Starred"}
                                     </TooltipContent>
                                 </Tooltip>
-                                
 
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-sm align-middle">
-                                <Tooltip>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button 
                                 variant="ghost"
@@ -441,7 +474,10 @@ const trashCount = useMemo(() => {
                                         {file.isTrash ? "Remove from trash" : "Add to trash"}
                                     </TooltipContent>
                                 </Tooltip>
-                                <Tooltip>
+
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button 
                                 variant="ghost"
@@ -461,7 +497,14 @@ const trashCount = useMemo(() => {
                                     </TooltipContent>
                                 </Tooltip>
 
-                                {file.isPublic ? (
+
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+
+                                            {file.isPublic ? (
                                 <>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -537,10 +580,20 @@ const trashCount = useMemo(() => {
                                </Tooltip>
                                 )}
 
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                
+                                
+
+                                
+                                
+                                
+
 
                                 
 
-                                {activeTab == "trash" && (
+                                {view == "trash" && (
                                     <Button 
                                     variant= "ghost"
                                     size="icon"
@@ -553,6 +606,7 @@ const trashCount = useMemo(() => {
                                 
 
                             </TableCell>
+                            
                         </TableRow>
 
 

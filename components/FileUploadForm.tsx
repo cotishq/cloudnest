@@ -42,10 +42,10 @@ export default function FileUploadForm({
 return (
     <div>
     <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-    <Button 
+    <Button className="h-8"
     variant="ghost"
-    size="icon"
-    onClick={handleUpload}>upload</Button>
+    
+    onClick={handleUpload}>Upload</Button>
     
     </div>
 )

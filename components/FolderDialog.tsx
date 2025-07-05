@@ -57,7 +57,7 @@ export default function FolderDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">+ New Folder</Button>
+                <Button className="h-8" variant="outline">+ New Folder</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>

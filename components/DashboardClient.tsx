@@ -4,21 +4,17 @@ import { useState } from "react";
 import FileList from "@/components/FileList";
 import FileUploadForm from "@/components/FileUploadForm";
 import FolderDialog from "@/components/FolderDialog";
+import DashboardLayout from "./layouts/DashboardLayout";
 
-interface DashboardClientProps {
-  userId: string;
-}
 
-export default function DashboardClient({ userId }: DashboardClientProps) {
+
+export default function DashboardClient({ userId }: {userId : string} ) {
+  
   
 
   return (
-    <div className="p-6">
-      <h1>Welcome to your dashboard, user {userId}</h1>
-
-      
-
-      <FileList  userId={userId} />
-    </div>
+    <DashboardLayout >
+      <FileList userId={userId} />
+    </DashboardLayout>
   );
 }
