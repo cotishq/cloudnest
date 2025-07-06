@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { toast } from "sonner";
 
 
 
@@ -45,6 +46,7 @@ export default function FolderDialog({
             setOpen(false);
             setFolderName("");
             onFolderCreated();
+            toast.success("Folder created");
             
         } catch (error) {
             console.error("Failed to create folder:" ,error);

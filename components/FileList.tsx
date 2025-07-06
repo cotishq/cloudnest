@@ -27,6 +27,8 @@ import { DropdownMenuContent } from "./ui/dropdown-menu";
 import PreviewDialog from "./PreviewDialog";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ModeToggle } from "./ThemeToggle";
+import { Skeleton } from "./ui/skeleton";
 
 
 
@@ -274,7 +276,26 @@ const trashCount = useMemo(() => {
 
 
 
-    if(loading) return <p className="text-sm p-4">Loading files...</p>
+    if (loading) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <div
+          key={idx}
+          className="flex items-center gap-4 p-4 border rounded-xl bg-muted"
+        >
+          <Skeleton className="h-12 w-12 rounded" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-3/5" />
+            <Skeleton className="h-4 w-2/5" />
+          </div>
+          <Skeleton className="h-6 w-10" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 
     const totalSizeBytes = files
     .filter(file => !file.isTrash && !file.isFolder)
@@ -300,8 +321,10 @@ const trashCount = useMemo(() => {
           onFolderCreated={fetchFiles}
         />
 
-        <FileUploadForm userId={userId} parentId={currentFolderId} onUploadComplete={fetchFiles} />
+        <FileUploadForm  userId={userId} parentId={currentFolderId} onUploadComplete={fetchFiles} />
 
+        
+        <ModeToggle />  
 
 
             </div>
@@ -410,7 +433,10 @@ const trashCount = useMemo(() => {
                             <TableCell className="px-4 py-3 text-sm align-middle">{(file.size / 1024).toFixed(1)} KB</TableCell>
                             <TableCell className="text-center" >
                             
-                                <button className="text-blue-600 hover:underline" onClick={() => handleDownload(file)}>
+                                <button className="text-blue-600 hover:underline" onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDownload(file);
+                                }}>
                                     <Download className="w-4 h-4 " />
                                 </button>
                             </TableCell>
@@ -594,13 +620,23 @@ const trashCount = useMemo(() => {
                                 
 
                                 {view == "trash" && (
-                                    <Button 
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button 
                                     variant= "ghost"
                                     size="icon"
-                                    onClick={() => handleDelete(file.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(file.id)
+                                    }}
                                     >
                                       < X className="w-4 h-4 text-destructive" />
                                     </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            Delete permanently
+                                        </TooltipContent>
+                                    </Tooltip>
 
                                 )}
                                 
