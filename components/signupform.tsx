@@ -62,7 +62,10 @@ export default function SignUpForm(){
         setIsSubmitting(true)
         setAuthError(null)
 
+       
+
         try {
+             
             await signUp.create({
                 emailAddress : data.identifier,
                 password : data.password,
@@ -89,18 +92,20 @@ export default function SignUpForm(){
 
     const handleVerificationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if(!isLoaded || !signUp) return
+        if(!isLoaded || !signUp) return;
         setIsSubmitting(true);
         setAuthError(null);
 
         try {
 
             const result = await signUp.attemptEmailAddressVerification({
-                code : verificationCode
-            })
+                code : verificationCode,
+            });
+
+            console.log("verification result:" , result);
 
             if(result.status === "complete"){
-                await setActive({session : result.createdSessionId})
+                await setActive({session : result.createdSessionId});
                 router.push("/dashboard")
 
             } 
@@ -150,7 +155,7 @@ export default function SignUpForm(){
 
                     <Input
                     id={id}
-                    type={isPassword && !show ? "password" : type}
+                    type={isPassword ? (show ? "text" : "password") : type}
                     className={`pl-10 pr-10 ${error ? "border-red-500" : ""}`}
                     {...rest}
                     />
@@ -159,7 +164,7 @@ export default function SignUpForm(){
                     <button
                         type="button"
                         onClick={(e) => {
-                        e.preventDefault(); // ensure no accidental form submit
+                        e.preventDefault(); 
                         toggleVisibility();
                         }}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
@@ -178,8 +183,7 @@ export default function SignUpForm(){
     
 
     if(verifying){
-        return 
-        (
+        return (
             <Card className="w-full max-w-md mx-auto shadow-xl">
                 <CardHeader className="text-center space-y-1">
                     <CardTitle>Verify Your Email</CardTitle>
@@ -205,9 +209,11 @@ export default function SignUpForm(){
                             label : "Verification Code",
                             type : "text",
                             value : verificationCode,
-                            onchange : (e: any) => setVerificationCode(e.target.value),
+                            onChange : (e: React.ChangeEvent<HTMLInputElement>) => setVerificationCode(e.target.value),
                             
                         })}
+
+                        
 
                         <Button type = "submit" className="w-full" disabled={isSubmitting}>
                             {isSubmitting ? "Verifying..." : "verify email"}
@@ -237,7 +243,17 @@ export default function SignUpForm(){
                 
 
             </Card>
-        );
+
+        )
+        
+            
+
+            
+
+
+            
+            
+        
     }
 
     return (
@@ -325,6 +341,8 @@ export default function SignUpForm(){
 
 
                     </div>
+
+                    <div id="clerk-captcha" className="my-4" />
 
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                         {isSubmitting ? "Creating account" : "Create Account"}

@@ -3,10 +3,12 @@
 
 "use client";
 
-import { Home, Star, Trash2 } from "lucide-react";
+import { Home, LogOut, Star, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { SignOutButton } from "@clerk/nextjs";
+import { Button } from "../ui/button";
 
 const navItems = [
   { label: "All Files", icon: <Home className="h-4 w-4" />, value: "all" },
@@ -46,7 +48,18 @@ export default function DashboardLayout({
             </Link>
           ))}
         </div>
+
+        <div>
+        <SignOutButton>
+          <Button variant="ghost" className="w-full justify-start">
+            <LogOut className="w-4 h-4 mr-2" />
+            LogOut
+          </Button>
+        </SignOutButton>
+      </div>
       </aside>
+
+      
 
       
       <main className="flex-1 p-6">{children}</main>
