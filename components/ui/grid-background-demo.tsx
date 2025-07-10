@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 
 export default function GridBackgroundDemo({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex h-[50rem] w-full items-center justify-center overflow-hidden bg-white dark:bg-black">
+    <div className="relative flex min-h-[50rem] w-full items-center justify-center bg-background overflow-visible">
       <div
         className={cn(
           "absolute inset-0",

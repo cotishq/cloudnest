@@ -1,68 +1,78 @@
 
+"use client"
 
-
-"use client";
-
-import { Home, LogOut, Star, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { SignOutButton } from "@clerk/nextjs";
-import { Button } from "../ui/button";
+import { usePathname, useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { useState } from "react"
+import { Menu, LogOut } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { SignOutButton } from "@clerk/nextjs"
 
 const navItems = [
-  { label: "All Files", icon: <Home className="h-4 w-4" />, value: "all" },
-  { label: "Starred", icon: <Star className="h-4 w-4" />, value: "starred" },
-  { label: "Trash", icon: <Trash2 className="h-4 w-4" />, value: "trash" },
-];
+  { label: "All Files", value: "all", icon: <i className="ri-folder-line" /> },
+  { label: "Starred", value: "starred", icon: <i className="ri-star-line" /> },
+  { label: "Trash", value: "trash", icon: <i className="ri-delete-bin-line" /> },
+]
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const activeTab = searchParams.get("view") || "all";
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const activeTab = searchParams.get("view") || "all"
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background text-foreground">
       
-      <aside className="w-[220px] border-r px-4 py-6 bg-muted/50">
-        <div className="text-lg font-semibold mb-4">CloudNest</div>
-        <div className="space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.value}
-              href={`${pathname}?view=${item.value}`}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-md w-full hover:bg-muted text-sm font-medium transition",
-                activeTab === item.value
-                  ? "bg-muted font-semibold"
-                  : "text-muted-foreground"
-              )}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
+      {sidebarOpen && (
+        <aside className="w-[220px] border-r px-4 py-6 bg-background relative hidden md:block">
+          <div className="text-lg font-bold mb-6">CloudNest</div>
+
+          <div className="space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.value}
+                href={`?view=${item.value}`}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full transition hover:bg-muted hover:text-white",
+                  activeTab === item.value
+                    ? "bg-muted text-white"
+                    : "text-muted-foreground"
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          
+          <div className="absolute bottom-6 left-4 right-4">
+            <SignOutButton>
+              <Button variant="ghost" className="w-full justify-start">
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
+              </Button>
+            </SignOutButton>
+          </div>
+        </aside>
+      )}
+
+      
+      <main className="flex-1 p-6">
+        
+        <div className="mb-4">
+          <Button variant="ghost" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
 
-        <div>
-        <SignOutButton>
-          <Button variant="ghost" className="w-full justify-start">
-            <LogOut className="w-4 h-4 mr-2" />
-            LogOut
-          </Button>
-        </SignOutButton>
-      </div>
-      </aside>
-
-      
-
-      
-      <main className="flex-1 p-6">{children}</main>
+        {children}
+      </main>
     </div>
-  );
+  )
 }

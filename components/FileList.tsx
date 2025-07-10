@@ -310,27 +310,54 @@ const trashCount = useMemo(() => {
     return (
         
     <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-            
-            <CardTitle className="text-xl font-semibold mb-4 capitalize">{view} Files</CardTitle>
+        <CardHeader className="space-y-4">
 
-            <div className="flex items-center gap-2">
-                <FolderDialog
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
+                <CardTitle className="text-xl font-semibold mb-4 capitalize">{view} Files</CardTitle>
+
+                
+                    <Input
+                type="text"
+                placeholder="Search files or folders..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full md:max-w-md mb-4"
+                />
+
+
+               
+
+            </div>
+            
+            
+
+            <div className="flex items-center gap-2 justify-between flex-wrap">
+                <div className="flex items-center gap-2">
+                    <FolderDialog
           userId={userId}
           parentId={currentFolderId}
           onFolderCreated={fetchFiles}
         />
-
         <FileUploadForm  userId={userId} parentId={currentFolderId} onUploadComplete={fetchFiles} />
 
+
+
+                </div>
+                
+
         
-        <ModeToggle />  
+        
+        <div className="absolute top-4 right-4">
+            <ModeToggle />
+            </div> 
 
 
             </div>
         </CardHeader>
 
         <CardContent>
+        
+
         
 
      
@@ -345,19 +372,25 @@ const trashCount = useMemo(() => {
                     />
                 )}
 
-                <Input
-                type="text"
-                placeholder="Search files or folders..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm mb-4"
-                />
+                
              
             {filteredFiles.length == 0 ? (
                 <div>
-                    {view === "starred" && "No starred files"}
-                    {view === "trash" && "Trash is empty"}
-                    {view === "all" && "No files found"}
+                    {view === "starred" && <Card className="mt-8 text-center text-muted-foreground">
+                    <CardContent>
+                        <p className="text-sm">Star files that matter most to you, and they’ll show up here.</p>
+                    </CardContent>
+                    </Card>}
+                    {view === "trash" && <Card className="mt-8 text-center text-muted-foreground">
+                    <CardContent>
+                        <p className="text-sm">No trash files found.</p>
+                    </CardContent>
+                    </Card> }
+                    {view === "all" && <Card className="mt-8 text-center text-muted-foreground">
+                    <CardContent>
+                        <p className="text-sm">No files found in this view.</p>
+                    </CardContent>
+                    </Card>}
                 </div>
             ) : (
 
@@ -369,6 +402,7 @@ const trashCount = useMemo(() => {
 
                     </div>
                 )} 
+
 
                 
                 
@@ -383,8 +417,8 @@ const trashCount = useMemo(() => {
 
                <Card className="mt-4 rounded-2xl shadow-sm">
                 <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table>
+                    <div className="rounded-xl border bg-background text-foreground shadow-sm overflow-x-auto">
+                        <Table >
                 <TableHeader>
                     <TableRow className="hover:bg-accent trasition duration-150">
                         <TableHead className="w-[50px]">Thumbnail</TableHead>
@@ -674,8 +708,10 @@ const trashCount = useMemo(() => {
                 
 
             )}
+
+            </CardContent>
             
-        </CardContent>
+        
     </Card>
 )
 
