@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import ImageKit from "imagekit";
 import {v4 as uuid} from "uuid";
 import { createUserIfNotExists } from "@/lib/createUserIfNotExists";
-import { create } from "axios";
+
 
 const imagekit = new ImageKit({
     publicKey : process.env.IMAGEKIT_PUBLIC_KEY || "",
@@ -14,8 +14,11 @@ const imagekit = new ImageKit({
 
 });
 
-const Allowed_types = ["image/jpeg" , "image/png" , "image/webp" , "application/pdf"];
-const Max_size = 10;
+const Allowed_types = ["image/jpeg" , "image/png" , "image/webp" , "application/pdf" , "text/plain",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/zip",
+  "text/csv",];
+const Max_size = 20;
 
 export async function POST(req : NextRequest){
     try {

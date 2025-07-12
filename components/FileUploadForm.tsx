@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { UploadCloud } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/file-utils";
 
 export default function FileUploadForm({
   userId,

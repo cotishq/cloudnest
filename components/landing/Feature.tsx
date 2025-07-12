@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/file-utils";
 import {
   IconLock,
   IconBolt,
@@ -54,7 +54,7 @@ export function Features() {
   },
   ];
   return (
-    <section className="bg-black py-16 px-4">
+    <section className="bg-background py-16 px-4">
       <div className="max-w-6xl mx-auto text-center mb-10">
         <h2 className="text-3xl md:text-4xl font-bold">Everything You Need to Manage Your Files</h2>
         <p className="text-muted-foreground mt-2 text-sm md:text-base">

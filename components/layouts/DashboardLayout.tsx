@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useState } from "react"
 import { Menu, LogOut } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/file-utils"
 import { Button } from "@/components/ui/button"
 import { SignOutButton } from "@clerk/nextjs"
 
@@ -38,9 +38,9 @@ export default function DashboardLayout({
                 key={item.value}
                 href={`?view=${item.value}`}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full transition hover:bg-muted hover:text-white",
+                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full transition hover:bg-muted ",
                   activeTab === item.value
-                    ? "bg-muted text-white"
+                    ? "bg-muted "
                     : "text-muted-foreground"
                 )}
               >

@@ -1,6 +1,6 @@
 
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/file-utils";
 import { ReactNode } from "react";
 
 export default function GridBackgroundDemo({ children }: { children: ReactNode }) {

@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button"
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t border-muted bg-black text-muted-foreground">
+    <footer className="w-full border-t border-muted bg-background text-muted-foreground">
       <div className="container max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
         
         
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">CloudNest</h2>
+          <h2 className="text-2xl font-bold text-muted-foreground"> CloudNest</h2>
           <p className="text-sm">
             Upload. Organize. Share. All in one secure place.
           </p>

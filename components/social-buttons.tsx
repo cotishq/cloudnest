@@ -21,10 +21,10 @@ import { Button } from "./ui/button";
     };
 
     return (
-        <div>
+        <div className="space-y-3">
             <Button 
             variant="outline"
-            className="w-full flex items-center gap-2"
+            className="w-full h-11 font-medium border-2 hover:bg-accent/50 transition-colors"
             onClick={() => handleOAuth("oauth_google")}>
                 <Image 
                 src="\Google__G__logo.svg"
@@ -36,7 +36,7 @@ import { Button } from "./ui/button";
             </Button>
             <Button 
             variant="outline"
-            className="w-full flex items-center gap-2"
+            className="w-full h-11 font-medium border-2 hover:bg-accent/50 transition-colors"
             onClick={() => handleOAuth("oauth_apple")}>
                 <Image 
                 src="/Apple_logo_black.svg"

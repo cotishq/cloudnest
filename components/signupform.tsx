@@ -25,6 +25,7 @@ import {
     Eye , 
     EyeOff,
     LockIcon,
+    User,
 } from "lucide-react";
 
 export default function SignUpForm(){
@@ -93,37 +94,42 @@ export default function SignUpForm(){
     const handleVerificationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if(!isLoaded || !signUp) return;
+
+        if (!verificationCode || verificationCode.trim().length !== 6) {
+        setVerificationError("Please enter a valid 6-digit verification code.");
+        return;
+    }
         setIsSubmitting(true);
-        setAuthError(null);
+        setVerificationError(null);
 
         try {
 
             const result = await signUp.attemptEmailAddressVerification({
-                code : verificationCode,
+                code : verificationCode.trim(),
             });
 
-            console.log("verification result:" , result);
+            console.log("Full verification result:", JSON.stringify(result, null, 2));
+        console.log("Result status:", result.status);
+        console.log("Result verification:", result.verifications);
 
             if(result.status === "complete"){
                 await setActive({session : result.createdSessionId});
                 router.push("/dashboard")
 
             } 
-            else{
-                console.error("Verification incomplete" , result);
-                setVerificationError(
-                    "Verification could not be complete"
-                )
-                
-            }
+
+            
             
         } catch (error:any) {
             console.error("Verification incomplete" , error);
 
-            setVerificationError(
-                error.errors?.[0]?.message || 
-                "An error occured during the signup . Please try again"
-            );
+            if (error.errors && error.errors.length > 0) {
+            setVerificationError(error.errors[0].message);
+        } else if (error.message) {
+            setVerificationError(error.message);
+        } else {
+            setVerificationError("An error occurred during verification. Please try again.");
+        }
             
         }
         finally{
@@ -143,12 +149,12 @@ export default function SignUpForm(){
             ...rest
             }: any) => {
             return (
-                <div>
-                <label htmlFor={id} className="text-sm font-medium">
+                <div className="space-y-2">
+                <label htmlFor={id} className="text-sm font-medium text-foreground">
                     {label}
                 </label>
 
-                <div className="relative mt-1">
+                <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     {icon}
                     </span>
@@ -156,7 +162,7 @@ export default function SignUpForm(){
                     <Input
                     id={id}
                     type={isPassword ? (show ? "text" : "password") : type}
-                    className={`pl-10 pr-10 ${error ? "border-red-500" : ""}`}
+                    className={`pl-10 pr-10 h-11 transition-colours ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "focus:border-primary focus:ring-primary/20"}`}
                     {...rest}
                     />
 
@@ -167,14 +173,14 @@ export default function SignUpForm(){
                         e.preventDefault(); 
                         toggleVisibility();
                         }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10 hover:text-foreground transition-colors"
                     >
                         {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                     )}
                 </div>
 
-                {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+                {error && <p className="text-sm text-red-500 flex items-center gap-1">{error}</p>}
                 </div>
             );
             };
@@ -184,8 +190,8 @@ export default function SignUpForm(){
 
     if(verifying){
         return (
-            <Card className="w-full max-w-md mx-auto shadow-xl">
-                <CardHeader className="text-center space-y-1">
+            <Card className="w-full max-w-md mx-auto shadow-lg border-0 bg-card">
+                <CardHeader className="text-center space-y-2 pb-6">
                     <CardTitle>Verify Your Email</CardTitle>
                     <CardDescription>
                         We've send you a Verification code to your entered email.
@@ -257,11 +263,14 @@ export default function SignUpForm(){
     }
 
     return (
-        <Card className="w-full max-w-md mx-auto shadow-xl">
-            <CardHeader className="text-center space -y-1">
-                <CardTitle>You're one click away from managing your files</CardTitle>
-                <CardDescription>
-                    Sign Up to start Your journey
+        <Card className="w-full max-w-md mx-auto shadow-lg border-0 bg-card">
+            <CardHeader className="text-center space-y-2 pb-6">
+                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+                    <User className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl font-semibold">Create Account</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                    Join CloudNest to start managing your files
 
                 </CardDescription>
             </CardHeader>
@@ -353,7 +362,7 @@ export default function SignUpForm(){
             <Separator />
             <CardFooter className="justify-center text-sm py-4">
                 Already connected to us?{" "}
-                <Link href = "/signin" className = "text-primary ml-1 hover:underline ">
+                <Link href = "/sign-in" className = "text-primary ml-1 hover:underline ">
                 Sign In</Link>
             </CardFooter>
         </Card>
