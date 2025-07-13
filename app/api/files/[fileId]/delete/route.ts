@@ -7,8 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 
 export async function DELETE(
-  req: NextRequest,
-  context: { params: { fileId: string } }
+  context: { params: { fileId: string },
+  req: NextRequest
+   }
 ) {
   try {
     const {fileId} = context.params;
