@@ -19,7 +19,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
   const searchParams = useSearchParams()
   const activeTab = searchParams.get("view") || "all"
   const [sidebarOpen, setSidebarOpen] = useState(true)

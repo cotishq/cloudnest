@@ -68,7 +68,7 @@ export const RenameDialog = ({ file, newName, setNewName, onRename, onClose }: R
         try {
             await onRename(file.id, newName.trim());
             onClose();
-        } catch (err) {
+        } catch (e) {
             setError("Failed to rename file. Please try again.");
         } finally {
             setIsRenaming(false);

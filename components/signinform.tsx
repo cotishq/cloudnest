@@ -156,7 +156,7 @@ export default function SignInForm(){
       <Separator />
 
       <CardFooter className="justify-center text-sm py-4">
-        Don’t have an account?{' '}
+        Don`t have an account?{' '}
         <Link href="/sign-up" className="ml-1 text-primary hover:underline font-medium">
           Sign up
         </Link>

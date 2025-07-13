@@ -24,7 +24,6 @@ import {
     CheckCircle,
     Eye , 
     EyeOff,
-    LockIcon,
     User,
 } from "lucide-react";
 
@@ -194,7 +193,7 @@ export default function SignUpForm(){
                 <CardHeader className="text-center space-y-2 pb-6">
                     <CardTitle>Verify Your Email</CardTitle>
                     <CardDescription>
-                        We've send you a Verification code to your entered email.
+                        We`ve send you a Verification code to your entered email.
                     </CardDescription>
 
                 </CardHeader>
@@ -228,7 +227,7 @@ export default function SignUpForm(){
                     </form>
 
                     <div>
-                        Didn't receive a Code?{" "}
+                        Didn`t receive a Code?{" "}
                         <button 
                         onClick={async () => {
                             if(signUp){
@@ -328,7 +327,7 @@ export default function SignUpForm(){
                     <div>
                         <CheckCircle className="h-4 w-4 mt-0.5 text-primary" />
                         <p className="text-xs text-muted-foreground text-center mt-4">
-                                By signing up, you agree to CloudNest's{" "}
+                                By signing up, you agree to CloudNest`s{" "}
                                 <a
                                     href="/terms"
                                     target="_blank"

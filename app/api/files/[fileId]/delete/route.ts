@@ -1,19 +1,14 @@
 import { db } from "@/lib/db";
 import { deleteFileFromImageKit, deleteFolderRecursively } from "@/lib/file-utils";
 import { auth } from "@clerk/nextjs/server";
-import ImageKit from "imagekit";
 import { NextRequest, NextResponse } from "next/server";
 
 
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || "",
-});
+
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { fileId: string } }
+  context: { params: { fileId: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -21,7 +16,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const fileId = params.fileId;
+    const {fileId} = context.params;
     if (!fileId) {
       return NextResponse.json({ error: "File ID is required" }, { status: 400 });
     }

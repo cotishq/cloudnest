@@ -3,7 +3,7 @@
 import { useRef, useState, useCallback } from "react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
-import { UploadCloud, X, FileText, Image, Video, Music, Archive, CheckCircle, AlertCircle } from "lucide-react";
+import { UploadCloud, X, FileText, Image, Video, Music, Archive } from "lucide-react";
 import { cn } from "@/lib/file-utils";
 
 export default function FileUploadForm({

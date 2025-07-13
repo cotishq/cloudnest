@@ -1,6 +1,6 @@
 "use client"
 
-import { act, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import FileIcon from "./FileIcon";
@@ -38,8 +38,6 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
     const [searchQuery, setSearchQuery] = useState("");
     const [editingFile, setEditingFile] = useState<File | null>(null);
     const [newName, setNewName] = useState("");
-    const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-    const [isSelectionMode, setIsSelectionMode] = useState(false);
     
     const searchParams = useSearchParams();
     const view = searchParams.get("view") || "all";
@@ -122,7 +120,8 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
 
     const handleStarToggle = async (fileId: string) => {
         try {
-            const res = await axios.patch(`/api/files/${fileId}/starred`);
+        
+            await axios.patch(`/api/files/${fileId}/starred`);
             
             setFiles(prev => prev.map(file => 
                 file.id === fileId ? { ...file, isStarred: !file.isStarred } : file
@@ -140,7 +139,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
 
     const handleTrashToggle = async (fileId: string) => {
         try {
-            const res = await axios.patch(`/api/files/${fileId}/trashed`);
+             await axios.patch(`/api/files/${fileId}/trashed`);
             
             setFiles(prev => prev.map(file => 
                 file.id === fileId ? { ...file, isTrash: !file.isTrash } : file
@@ -164,7 +163,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
         try {
             const fileToDelete = files.find(f => f.id === fileId);
             
-            const res = await axios.delete(`/api/files/${fileId}/delete`);
+            await axios.delete(`/api/files/${fileId}/delete`);
             setFiles((prev) => prev.filter((file) => file.id !== fileId));
             
             toast.success(`"${fileToDelete?.name}" permanently deleted`);
@@ -234,6 +233,8 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
             
             toast.success(`File is now ${updated.isPublic ? "public" : "private"}`);
         } catch (error) {
+            console.error("Failed to update share" , error)
+            
             toast.error("Failed to update sharing status");
         }
     };
@@ -360,7 +361,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                                     <Star className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
                                     <p className="text-lg font-medium text-muted-foreground">No starred files yet</p>
                                     <p className="text-sm text-muted-foreground/75 mt-2">
-                                        Star files that matter most to you, and they'll show up here.
+                                        Star files that matter most to you, and they`ll show up here.
                                     </p>
                                 </CardContent>
                             </Card>

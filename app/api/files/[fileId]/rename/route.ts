@@ -1,7 +1,4 @@
 import { db } from "@/lib/db";
-import { error } from "console";
-
-import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 
 

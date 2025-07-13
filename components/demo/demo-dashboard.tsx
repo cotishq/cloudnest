@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import FileList from "../FileList";
 import type { File } from "@prisma/client";
+import Link from "next/link";
 
 export const DemoDashboard = () => {
   useEffect(() => {
@@ -53,9 +54,9 @@ export const DemoDashboard = () => {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Demo Dashboard</h1>
-        <a href="/sign-up">
+        <Link href="/sign-up">
           <Button variant="outline">Sign Up</Button>
-        </a>
+        </Link>
       </div>
 
       <FileList userId="demo" isDemo filestate={demoFiles} />
