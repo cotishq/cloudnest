@@ -5,10 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
     req : NextRequest,
-    {params} : {params : {fileId : string}}
+    props : {params : Promise<{fileId : string}>}
 ) {
 
-    const fileId = params.fileId;
+    const {fileId} = await props.params;
 
     try {
 
