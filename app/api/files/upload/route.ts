@@ -14,7 +14,7 @@ const imagekit = new ImageKit({
 
 });
 
-const Allowed_types = ["image/jpeg" , "image/png" , "image/webp" , "application/pdf" , "text/plain",
+const Allowed_types = ["image/jpeg" , "image/png" , "image/webp" ,"video/mp4", "application/pdf" , "text/plain",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/zip",
   "text/csv",];
@@ -51,7 +51,7 @@ export async function POST(req : NextRequest){
     if(!Allowed_types.includes(file.type)){
         return NextResponse.json({
             error : "Unsupported file type"
-        } , {status : 400});
+        } , {status : 402});
     }
 
     const fileSizeMB = file.size / (1024 * 1024);

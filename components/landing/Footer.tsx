@@ -25,7 +25,7 @@ export default function Footer() {
                 <Twitter className="h-4 w-4" />
               </Button>
             </a>
-            <a href="https://linkedin.com/in/yourhandle" target="_blank">
+            <a href="https://www.linkedin.com/in/tanishq-patil-707348320/" target="_blank">
               <Button size="icon" variant="ghost">
                 <Linkedin className="h-4 w-4" />
               </Button>

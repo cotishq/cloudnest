@@ -1,4 +1,4 @@
-// components/TestimonialsSection.tsx
+
 "use client";
 
 export const TestimonialsSection = () => {

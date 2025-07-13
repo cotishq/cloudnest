@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import FileIcon from "./FileIcon";
 import { Button } from "./ui/button";
-import { ClipboardCopy, Download, GripHorizontal, Link, MoreVertical, Pencil, Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
+import { ClipboardCopy, Download, Link, MoreVertical, Pencil, Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
 import FolderNavigation from "./FolderNavigation";
 import FolderDialog from "./FolderDialog";
 import FileUploadForm from "./FileUploadForm";
@@ -252,9 +252,10 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     };
 
-    const formatDate = (dateString: string): string => {
-        return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-    };
+    const formatDate = (dateInput: Date | string): string => {
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  return formatDistanceToNow(date, { addSuffix: true });
+};
 
     
     if (loading) {
@@ -414,7 +415,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                                                 )}
                                                 onClick={() => file.isFolder && handleFolderClick(file)}
                                             >
-                                                <TableCell className="p-3">
+                                                <TableCell className="p-4">
                                                     <div className="flex items-center gap-2">
                                                         {file.thumbnailUrl ? (
                                                             <img

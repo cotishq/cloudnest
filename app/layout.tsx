@@ -15,9 +15,37 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
+
+
 export const metadata: Metadata = {
-  title: "Cloudnest",
-  description: "Your one stop solution for file storage",
+  title: "CloudNest – Minimal File Storage",
+  description:
+    "Upload, organize, and share files with CloudNest – a clean, fast, and secure file storage app.",
+  metadataBase: new URL("https://cloudnest.vercel.app"), 
+  openGraph: {
+    title: "CloudNest – Minimal File Storage",
+    description:
+      "Experience the fastest and cleanest file upload interface.",
+    url: "https://cloudnest.vercel.app",
+    siteName: "CloudNest",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "CloudNest App Preview",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CloudNest – Minimal File Storage",
+    description: "Experience clean, fast file uploads and organization.",
+    images: ["/og.png"],
+  },
+  themeColor: "#0f172a",
 };
 
 export default function RootLayout({
