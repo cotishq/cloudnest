@@ -8,15 +8,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { fileId: string }; }
+  context: { params: { fileId: string } }
 ) {
   try {
+    const {fileId} = context.params;
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const fileId = params.fileId;
+    
     if (!fileId) {
       return NextResponse.json({ error: "File ID is required" }, { status: 400 });
     }
