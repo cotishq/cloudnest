@@ -1,24 +1,21 @@
+
+
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { deleteFileFromImageKit, deleteFolderRecursively } from "@/lib/file-utils";
-import { auth } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
 
-
-export async function DELETE(
-  req : NextRequest,
-
-)
-    
- {
+export async function DELETE(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const fileId = url.pathname.split("/").at(-2);
+    const segments = url.pathname.split("/");
+    const fileId = segments.at(segments.length - 2); 
+
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    
     if (!fileId) {
       return NextResponse.json({ error: "File ID is required" }, { status: 400 });
     }
@@ -42,8 +39,8 @@ export async function DELETE(
       success: true,
       message: "Item permanently deleted",
     });
-  } catch (error) {
-    console.error("Error while deleting:", error);
+  } catch (err) {
+    console.error("DELETE route error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
