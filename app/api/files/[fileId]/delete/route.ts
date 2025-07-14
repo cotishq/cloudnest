@@ -6,12 +6,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   req : NextRequest,
-  props : {params : Promise<{fileId : string}>}
+  {params} : {params : {fileId : string}}
 )
     
  {
   try {
-    const {fileId} = await props.params;
+    const {fileId} = params;
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
