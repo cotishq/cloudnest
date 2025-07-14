@@ -12,7 +12,7 @@ export default function DashboardClient({ userId }: {userId : string} ) {
 
   return (
     <DashboardLayout >
-      <FileList userId={userId} />
+      <FileList userId={userId} view="all" />
     </DashboardLayout>
   );
 }

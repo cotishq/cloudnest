@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+
+
 import { DemoDashboard } from "@/components/demo/demo-dashboard";
 
 

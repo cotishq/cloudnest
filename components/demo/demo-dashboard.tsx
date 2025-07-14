@@ -3,9 +3,9 @@
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import FileList from "../FileList";
 import type { File } from "@prisma/client";
 import Link from "next/link";
+import FileListWithView from "../FileListWithView";
 
 export const DemoDashboard = () => {
   useEffect(() => {
@@ -59,7 +59,7 @@ export const DemoDashboard = () => {
         </Link>
       </div>
 
-      <FileList userId="demo" isDemo filestate={demoFiles} />
+      <FileListWithView userId="demo" isDemo filestate={demoFiles} />
     </div>
   );
 };
