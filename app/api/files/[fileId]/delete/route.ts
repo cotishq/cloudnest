@@ -6,12 +6,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   req : NextRequest,
-  {params} : {params : {fileId : string}}
+
 )
     
  {
   try {
-    const {fileId} = params;
+    const url = new URL(req.url);
+    const fileId = url.pathname.split("/").at(-2);
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
