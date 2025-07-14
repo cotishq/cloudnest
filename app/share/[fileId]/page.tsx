@@ -5,9 +5,9 @@ import Link from "next/link"
 import { format } from "date-fns";
 import { Download } from "lucide-react"
 
-export default async function SharePage({ params }: { params: { fileId: string } }) {
+export default async function SharePage({params}: { params: Promise<{fileId : string}> }) {
   const file = await db.file.findUnique({
-    where: { id: params.fileId },
+    where: {  id  : (await params).fileId },
   })
 
   if (!file || !file.isPublic || file.isFolder) return notFound()
