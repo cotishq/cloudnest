@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "CloudNest",
     images: [
       {
-        url: "https://cloudnest-navy.vercel.app/og.png",
+        url: "https://cloudnest-navy.vercel.app/og.png?v=1",
         width: 1200,
         height: 630,
         alt: "CloudNest App Preview",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CloudNest – Minimal File Storage",
     description: "Experience clean, fast file uploads and organization.",
-    images: ["https://cloudnest-navy.vercel.app/og.png"],
+    images: ["https://cloudnest-navy.vercel.app/og.png?v=1"],
   },
   themeColor: "#0f172a",
 };
