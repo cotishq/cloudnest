@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { File } from "@prisma/client";
 import Link from "next/link";
-import FileListWithView from "../FileListWithView";
+import FileList from "../FileList";
 
 export const DemoDashboard = () => {
   useEffect(() => {
@@ -59,7 +59,7 @@ export const DemoDashboard = () => {
         </Link>
       </div>
 
-      <FileListWithView userId="demo" isDemo filestate={demoFiles} />
+      <FileList userId="demo" isDemo filestate={demoFiles} />
     </div>
   );
 };

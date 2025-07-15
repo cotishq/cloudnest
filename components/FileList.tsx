@@ -28,10 +28,10 @@ type FileListProps = {
     userId: string;
     isDemo?: boolean;
     filestate?: File[];
-    view : string;
+    
 }
 
-export default function FileList({ userId, isDemo = false , filestate , view }: FileListProps) {
+export default function FileList({ userId, isDemo = false , filestate }: FileListProps) {
     const [files, setFiles] = useState<File[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -41,6 +41,7 @@ export default function FileList({ userId, isDemo = false , filestate , view }: 
     const [newName, setNewName] = useState("");
     
     const searchParams = useSearchParams();
+    const view = searchParams.get('view') || 'all';
     
 
     const fetchFiles = useCallback(async () => {
@@ -62,7 +63,7 @@ export default function FileList({ userId, isDemo = false , filestate , view }: 
         } finally {
             setLoading(false);
         }
-    }, [userId, currentFolderId , isDemo , filestate ]);
+    }, [userId, currentFolderId , isDemo , filestate ,view ]);
 
     useEffect(() => {
         fetchFiles();
