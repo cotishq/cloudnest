@@ -13,7 +13,7 @@ export default async function SharePage({params}: { params: Promise<{fileId : st
   if (!file || !file.isPublic || file.isFolder) return notFound()
 
   const fileSizeKB = (file.size / 1024).toFixed(1)
-  const isPreviewable = file.type?.startsWith("image/") || file.type === "application/pdf"
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-background text-foreground">
@@ -27,19 +27,31 @@ export default async function SharePage({params}: { params: Promise<{fileId : st
           </p>
         </div>
 
-        {isPreviewable ? (
-          <div className="w-full border rounded-lg overflow-hidden bg-white p-2 dark:bg-muted">
-            <Image
-              src={file.fileUrl}
-              alt={file.name}
-              width={600}
-              height={400}
-              className="object-contain max-h-[400px] mx-auto"
-            />
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground italic">No preview available for this file type</p>
-        )}
+        {file.type?.startsWith("image/") ? (
+  <div className="w-full max-h-[500px] rounded-md overflow-hidden bg-white dark:bg-muted border">
+    <Image
+      src={file.fileUrl}
+      alt={file.name}
+      width={600}
+      height={400}
+      className="w-full h-auto object-contain"
+    />
+  </div>
+) : file.type === "application/pdf" ? (
+  <div className="w-full h-[500px] rounded-md overflow-hidden border bg-white dark:bg-muted">
+    <iframe
+      src={file.fileUrl}
+      title={file.name}
+      className="w-full h-full"
+      allow="fullscreen"
+    />
+  </div>
+) : (
+  <p className="text-sm text-muted-foreground italic">
+    No preview available for this file type
+  </p>
+)}
+
 
         <a
           href={file.fileUrl}
