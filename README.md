@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌩️ CloudNest – File Storage & Sharing App
 
-## Getting Started
+CloudNest is a full-stack, cloud-based file storage and sharing application inspired by Dropbox. Users can securely upload, organize, star, and manage files inside nested folders with a clean modern UI.
 
-First, run the development server:
+> 🚀 Live: [https://cloudnest-navy.vercel.app](https://cloudnest-navy.vercel.app)  
+> ✨ Try Demo (Read-Only): [https://cloudnest-navy.vercel.app/demo](https://cloudnest-navy.vercel.app/demo)
+
+---
+
+## 📦 Features
+
+### ✅ Core Functionality
+- 📁 Create folders and nested directory structures
+- ⬆️ Upload files of any type with preview thumbnails
+- 🔁 Navigate inside folders and backtrack the folder path
+- ⭐ Star important files
+- 🗑️ Soft delete files to Trash and restore them anytime
+
+### 🧩 Sharing & Permissions
+- 🔗 Generate public shareable links for files
+- 🧪 `/demo` route for public read-only preview
+
+### 🧠 UI/UX
+- 🎯 Clean, responsive UI built with `shadcn/ui` and Tailwind CSS
+- 🔍 Search files by name
+- 💡 Skeleton loaders and toast notifications
+
+### 🔐 Authentication
+- 🧑‍💻 Clerk integration for secure sign-in and sign-up
+- 👤 User-specific file access and isolation
+
+---
+
+## 🛠️ Tech Stack
+
+| Frontend           | Backend             | Database     | Storage    | Auth     | Deployment |
+|--------------------|---------------------|--------------|------------|----------|------------|
+| Next.js 14 (AppDir)| API Routes (REST)   | PostgreSQL   | ImageKit   | Clerk    | Vercel     |
+| Tailwind CSS       | Prisma ORM          | PlanetScale  | (Optional) | JWT Auth |            |
+| shadcn/ui          | React Hook Form + Zod|              |            |          |            |
+
+---
+
+## ⚙️ Getting Started
 
 ```bash
+# 1. Clone the repo
+git clone https://github.com/yourusername/cloudnest.git
+cd cloudnest
+
+# 2. Install dependencies
+npm install
+
+# 3. Set up environment variables
+cp .env.example .env
+# Add your DATABASE_URL, IMAGEKIT keys, and CLERK keys
+
+# 4. Push the Prisma schema
+npx prisma db push
+
+# 5. Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
