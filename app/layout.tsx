@@ -22,16 +22,16 @@ export const metadata: Metadata = {
   title: "CloudNest – Minimal File Storage",
   description:
     "Upload, organize, and share files with CloudNest – a clean, fast, and secure file storage app.",
-  metadataBase: new URL("https://cloudnest.vercel.app"), 
+  metadataBase: new URL("https://cloudnest-navy.vercel.app"), 
   openGraph: {
     title: "CloudNest – Minimal File Storage",
     description:
       "Experience the fastest and cleanest file upload interface.",
-    url: "https://cloudnest.vercel.app",
+    url: "https://cloudnest-navy.vercel.app",
     siteName: "CloudNest",
     images: [
       {
-        url: "/og.png",
+        url: "https://cloudnest-navy.vercel.app/og.png",
         width: 1200,
         height: 630,
         alt: "CloudNest App Preview",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CloudNest – Minimal File Storage",
     description: "Experience clean, fast file uploads and organization.",
-    images: ["/og.png"],
+    images: ["https://cloudnest-navy.vercel.app/og.png"],
   },
   themeColor: "#0f172a",
 };
