@@ -67,7 +67,11 @@ CloudNest is a Dropbox-inspired file management platform where users can upload 
 
 ---
 
+
+
 ## Installation
+
+```bash
 
 
 # Clone the repository
@@ -94,6 +98,8 @@ npx prisma db push
 # 5. Start the development server
 npm run dev
 
+```
+
 ## Usage
 - Register or sign in using Clerk
 
@@ -106,6 +112,8 @@ npm run dev
 - Access the read-only demo without authentication
 
 ## Folder Structure
+
+```bash
 .
 ├── app/                # App routes (dashboard, api, share, demo)
 ├── components/         # UI components and layouts
@@ -113,6 +121,8 @@ npm run dev
 ├── prisma/             # Prisma schema and migrations
 ├── public/             # Static assets
 ├── package.json        # Scripts and dependencies
+
+```
 
 ## Contributing
 Contributions are welcome.
