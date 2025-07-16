@@ -2,7 +2,7 @@ import { auth, clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { request } from 'http';
 import { NextResponse } from 'next/server';
 
-const isPublicRoute = createRouteMatcher(["/","/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)", "/demo"]);
 
 
 
