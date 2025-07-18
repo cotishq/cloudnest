@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import FileIcon from "./FileIcon";
 import { Button } from "./ui/button";
-import { ClipboardCopy, Download, Link, MoreVertical, Pencil, Star, StarOff, Trash, Trash2, Undo2, X } from "lucide-react";
+import { ClipboardCopy, Download, Link, MoreVertical, Pencil, Star, StarOff, Trash, Trash2, Undo2, X, ChevronRight } from "lucide-react";
 import FolderNavigation from "./FolderNavigation";
 import FolderDialog from "./FolderDialog";
 import FileUploadForm from "./FileUploadForm";
@@ -28,10 +28,9 @@ type FileListProps = {
     userId: string;
     isDemo?: boolean;
     filestate?: File[];
-    
 }
 
-export default function FileList({ userId, isDemo = false , filestate }: FileListProps) {
+export default function FileList({ userId, isDemo = false, filestate }: FileListProps) {
     const [files, setFiles] = useState<File[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -42,7 +41,6 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
     
     const searchParams = useSearchParams();
     const view = searchParams.get('view') || 'all';
-    
 
     const fetchFiles = useCallback(async () => {
         setLoading(true);
@@ -63,7 +61,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
         } finally {
             setLoading(false);
         }
-    }, [userId, currentFolderId , isDemo , filestate ,view ]);
+    }, [userId, currentFolderId, isDemo, filestate, view]);
 
     useEffect(() => {
         fetchFiles();
@@ -91,7 +89,6 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
 
     const handleDownload = async (file: File) => {
         try {
-            
             const loadingToast = toast.loading(`Preparing "${file.name}" for download...`);
             
             const response = await fetch(file.fileUrl);
@@ -110,7 +107,6 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
             link.remove();
             URL.revokeObjectURL(url);
 
-            
             toast.success(`"${file.name}" downloaded successfully`, {
                 id: loadingToast
             });
@@ -122,7 +118,6 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
 
     const handleStarToggle = async (fileId: string) => {
         try {
-        
             await axios.patch(`/api/files/${fileId}/starred`);
             
             setFiles(prev => prev.map(file => 
@@ -141,7 +136,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
 
     const handleTrashToggle = async (fileId: string) => {
         try {
-             await axios.patch(`/api/files/${fileId}/trashed`);
+            await axios.patch(`/api/files/${fileId}/trashed`);
             
             setFiles(prev => prev.map(file => 
                 file.id === fileId ? { ...file, isTrash: !file.isTrash } : file
@@ -235,8 +230,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
             
             toast.success(`File is now ${updated.isPublic ? "public" : "private"}`);
         } catch (error) {
-            console.error("Failed to update share" , error)
-            
+            console.error("Failed to update share", error);
             toast.error("Failed to update sharing status");
         }
     };
@@ -256,29 +250,211 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
     };
 
     const formatDate = (dateInput: Date | string): string => {
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
-  return formatDistanceToNow(date, { addSuffix: true });
-};
+        const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+        return formatDistanceToNow(date, { addSuffix: true });
+    };
 
-    
+    // Enhanced Actions Component
+    const FileActions = ({ file }: { file: File }) => (
+        <div className="flex items-center gap-1">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 hover:bg-blue-500/20 hover:text-blue-400 transition-colors"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(file);
+                        }}
+                    >
+                        <Download className="h-4 w-4" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Download</TooltipContent>
+            </Tooltip>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 hover:bg-muted/50 transition-colors"
+                    >
+                        <MoreVertical className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleStarToggle(file.id);
+                        }}
+                    >
+                        {file.isStarred ? (
+                            <StarOff className="h-4 w-4 mr-2" />
+                        ) : (
+                            <Star className="h-4 w-4 mr-2" />
+                        )}
+                        {file.isStarred ? "Remove from starred" : "Add to starred"}
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingFile(file);
+                            setNewName(file.name);
+                        }}
+                    >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Rename
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareToggle(file.id);
+                        }}
+                    >
+                        <Link className="h-4 w-4 mr-2" />
+                        {file.isPublic ? "Make private" : "Make public"}
+                    </DropdownMenuItem>
+
+                    {file.isPublic && (
+                        <DropdownMenuItem
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyShareLink(file.id);
+                            }}
+                        >
+                            <ClipboardCopy className="h-4 w-4 mr-2" />
+                            Copy share link
+                        </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleTrashToggle(file.id);
+                        }}
+                    >
+                        {file.isTrash ? (
+                            <Undo2 className="h-4 w-4 mr-2" />
+                        ) : (
+                            <Trash2 className="h-4 w-4 mr-2" />
+                        )}
+                        {file.isTrash ? "Restore" : "Move to trash"}
+                    </DropdownMenuItem>
+
+                    {view === "trash" && (
+                        <DropdownMenuItem
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(file.id);
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                        >
+                            <X className="h-4 w-4 mr-2" />
+                            Delete permanently
+                        </DropdownMenuItem>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+
+    // Mobile Card Component
+    const MobileFileCard = ({ file }: { file: File }) => (
+        <Card
+            className={cn(
+                "group cursor-pointer hover:shadow-md transition-all duration-200 border-l-4 border-l-transparent hover:border-l-blue-500 bg-card",
+                file.isFolder && "hover:bg-muted/30"
+            )}
+            onClick={() => file.isFolder && handleFolderClick(file)}
+        >
+            <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                        {file.thumbnailUrl ? (
+                            <img
+                                src={file.thumbnailUrl}
+                                alt={file.name}
+                                className="w-12 h-12 object-cover rounded-lg border shadow-sm"
+                            />
+                        ) : (
+                            <div className="w-12 h-12 rounded-lg bg-muted border flex items-center justify-center">
+                                <FileIcon type={file.type} />
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-semibold text-sm truncate text-foreground">
+                                    {file.name}
+                                </span>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                    {file.isStarred && (
+                                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                    )}
+                                    {file.isPublic && (
+                                        <Link className="h-3 w-3 text-blue-500" />
+                                    )}
+                                    {file.isFolder && (
+                                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                    )}
+                                </div>
+                            </div>
+                            <FileActions file={file} />
+                        </div>
+                        
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="bg-muted/50 px-2 py-1 rounded-full">
+                                {file.isFolder ? "Folder" : file.type}
+                            </span>
+                            <span>{file.isFolder ? "-" : formatFileSize(file.size)}</span>
+                        </div>
+                        
+                        <div className="text-xs text-muted-foreground">
+                            {formatDate(file.updatedAt)}
+                        </div>
+                        
+                        {file.type.startsWith("image/") || file.type === "application/pdf" ? (
+                            <div className="pt-1">
+                                <PreviewDialog
+                                    fileName={file.name}
+                                    fileUrl={file.fileUrl}
+                                    type={file.type}
+                                />
+                            </div>
+                        ) : null}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     if (loading) {
         return (
             <div className="space-y-4">
                 {Array.from({ length: 4 }).map((_, idx) => (
-                    <div
-                        key={idx}
-                        className="flex items-center gap-4 p-4 border rounded-xl bg-muted/50"
-                    >
-                        <Skeleton className="h-12 w-12 rounded" />
-                        <div className="flex-1 space-y-2">
-                            <Skeleton className="h-4 w-3/5" />
-                            <Skeleton className="h-3 w-2/5" />
-                        </div>
-                        <div className="flex gap-2">
-                            <Skeleton className="h-8 w-8 rounded" />
-                            <Skeleton className="h-8 w-8 rounded" />
-                        </div>
-                    </div>
+                    <Card key={idx} className="animate-pulse bg-card">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="h-12 w-12 rounded-lg" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-3/5" />
+                                    <Skeleton className="h-3 w-2/5" />
+                                    <Skeleton className="h-3 w-1/3" />
+                                </div>
+                                <div className="flex gap-2">
+                                    <Skeleton className="h-9 w-9 rounded" />
+                                    <Skeleton className="h-9 w-9 rounded" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
             </div>
         );
@@ -292,120 +468,140 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
     const MAX_STORAGE_MB = 100;
 
     return (
-        <Card className="border-0 shadow-lg">
-            <CardHeader className="space-y-6 pb-6">
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3">
-                        <CardTitle className="text-2xl font-bold capitalize bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            {view} Files
-                        </CardTitle>
-                        {view === "starred" && starredCount > 0 && (
-                            <div className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                {starredCount}
-                            </div>
-                        )}
-                        {view === "trash" && trashCount > 0 && (
-                            <div className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                                {trashCount}
-                            </div>
-                        )}
+        <div className="space-y-6">
+            <Card className="border-0 shadow-lg bg-card">
+                <CardHeader className="space-y-6 pb-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex items-center gap-3">
+                            <CardTitle className="text-2xl font-bold capitalize text-foreground">
+                                {view} Files
+                            </CardTitle>
+                            {view === "starred" && starredCount > 0 && (
+                                <div className="px-3 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-xs font-medium rounded-full border border-yellow-500/20">
+                                    {starredCount}
+                                </div>
+                            )}
+                            {view === "trash" && trashCount > 0 && (
+                                <div className="px-3 py-1 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-medium rounded-full border border-red-500/20">
+                                    {trashCount}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="absolute top-4 right-4 lg:static">
+                            <ModeToggle />
+                        </div>
                     </div>
 
-                    <div className="absolute top-4 right-4">
-                        <ModeToggle />
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <Input
-                        type="text"
-                        placeholder="Search files and folders..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full md:max-w-sm border-2 focus:border-blue-500 transition-colors"
-                    />
-
-                    <div className="flex items-center gap-2">
-                        <FolderDialog
-                            userId={userId}
-                            parentId={currentFolderId}
-                            onFolderCreated={fetchFiles}
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <Input
+                            type="text"
+                            placeholder="Search files and folders..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full lg:max-w-sm border-2 focus:border-blue-500 transition-colors h-11 bg-background"
                         />
-                        <FileUploadForm
-                            userId={userId}
-                            parentId={currentFolderId}
-                            onUploadComplete={fetchFiles}
-                        />
+
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <FolderDialog
+                                userId={userId}
+                                parentId={currentFolderId}
+                                onFolderCreated={fetchFiles}
+                            />
+                            <FileUploadForm
+                                userId={userId}
+                                parentId={currentFolderId}
+                                onUploadComplete={fetchFiles}
+                            />
+                        </div>
                     </div>
-                </div>
-            </CardHeader>
+                </CardHeader>
+            </Card>
 
-            <CardContent className="space-y-6">
-                {view === "all" && (
-                    <FolderNavigation
-                        folderPath={folderPath}
-                        navigateUp={navigateUp}
-                        navigateToPathFolder={navigateToPathFolder}
-                    />
-                )}
+            {view === "all" && (
+                <Card className="border-0 shadow-sm bg-card">
+                    <CardContent className="p-4">
+                        <FolderNavigation
+                            folderPath={folderPath}
+                            navigateUp={navigateUp}
+                            navigateToPathFolder={navigateToPathFolder}
+                        />
+                    </CardContent>
+                </Card>
+            )}
 
-                {view === "all" && (
-                    <div className="mt-4">
+            {view === "all" && (
+                <Card className="border-0 shadow-sm bg-card">
+                    <CardContent className="p-4">
                         <StorageBar usedMB={totalSizeMB} maxMB={MAX_STORAGE_MB} />
-                    </div>
-                )}
+                    </CardContent>
+                </Card>
+            )}
 
-                {filteredFiles.length === 0 ? (
-                    <div className="text-center py-16">
-                        {view === "starred" && (
-                            <Card className="border-dashed border-2 border-muted-foreground/25 bg-muted/20">
-                                <CardContent className="py-8">
-                                    <Star className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                                    <p className="text-lg font-medium text-muted-foreground">No starred files yet</p>
-                                    <p className="text-sm text-muted-foreground/75 mt-2">
-                                        Star files that matter most to you, and they`ll show up here.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {view === "trash" && (
-                            <Card className="border-dashed border-2 border-muted-foreground/25 bg-muted/20">
-                                <CardContent className="py-8">
-                                    <Trash className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                                    <p className="text-lg font-medium text-muted-foreground">Trash is empty</p>
-                                    <p className="text-sm text-muted-foreground/75 mt-2">
-                                        Deleted files will appear here before being permanently removed.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
-                        {view === "all" && (
-                            <Card className="border-dashed border-2 border-muted-foreground/25 bg-muted/20">
-                                <CardContent className="py-8">
-                                    <div className="h-12 w-12 rounded-full bg-muted-foreground/10 flex items-center justify-center mx-auto mb-4">
-                                        <Download className="h-6 w-6 text-muted-foreground/50" />
-                                    </div>
-                                    <p className="text-lg font-medium text-muted-foreground">No files found</p>
-                                    <p className="text-sm text-muted-foreground/75 mt-2">
-                                        Upload your first file to get started.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        )}
+            {filteredFiles.length === 0 ? (
+                <div className="text-center py-16">
+                    {view === "starred" && (
+                        <Card className="border-dashed border-2 border-border bg-card">
+                            <CardContent className="py-12">
+                                <div className="w-20 h-20 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <Star className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
+                                </div>
+                                <p className="text-xl font-semibold text-foreground mb-2">No starred files yet</p>
+                                <p className="text-muted-foreground">
+                                    Star files that matter most to you, and they'll show up here.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {view === "trash" && (
+                        <Card className="border-dashed border-2 border-border bg-card">
+                            <CardContent className="py-12">
+                                <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <Trash className="h-10 w-10 text-red-600 dark:text-red-400" />
+                                </div>
+                                <p className="text-xl font-semibold text-foreground mb-2">Trash is empty</p>
+                                <p className="text-muted-foreground">
+                                    Deleted files will appear here before being permanently removed.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {view === "all" && (
+                        <Card className="border-dashed border-2 border-border bg-card">
+                            <CardContent className="py-12">
+                                <div className="w-20 h-20 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <Download className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <p className="text-xl font-semibold text-foreground mb-2">No files found</p>
+                                <p className="text-muted-foreground">
+                                    Upload your first file to get started.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            ) : (
+                <>
+                    {/* Mobile Card View */}
+                    <div className="block lg:hidden space-y-3">
+                        {filteredFiles.map((file) => (
+                            <MobileFileCard key={file.id} file={file} />
+                        ))}
                     </div>
-                ) : (
-                    <Card className="border border-muted-foreground/20 shadow-sm">
+
+                    {/* Desktop Table View */}
+                    <Card className="hidden lg:block border-0 shadow-sm bg-card">
                         <CardContent className="p-0">
                             <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="hover:bg-muted/50 transition-colors">
-                                            <TableHead className="w-[60px]">Preview</TableHead>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead className="hidden md:table-cell">Type</TableHead>
-                                            <TableHead className="hidden sm:table-cell">Size</TableHead>
-                                            <TableHead className="hidden lg:table-cell">Modified</TableHead>
-                                            <TableHead className="text-center">Actions</TableHead>
+                                            <TableHead className="w-[80px] font-semibold">Preview</TableHead>
+                                            <TableHead className="font-semibold">Name</TableHead>
+                                            <TableHead className="font-semibold">Type</TableHead>
+                                            <TableHead className="font-semibold">Size</TableHead>
+                                            <TableHead className="font-semibold">Modified</TableHead>
+                                            <TableHead className="text-center font-semibold">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -413,7 +609,7 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                                             <TableRow
                                                 key={file.id}
                                                 className={cn(
-                                                    "group transition-colors hover:bg-muted/30",
+                                                    "group transition-all hover:bg-muted/30",
                                                     file.isFolder ? "cursor-pointer" : ""
                                                 )}
                                                 onClick={() => file.isFolder && handleFolderClick(file)}
@@ -424,10 +620,10 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                                                             <img
                                                                 src={file.thumbnailUrl}
                                                                 alt={file.name}
-                                                                className="w-10 h-10 object-cover rounded-lg border"
+                                                                className="w-12 h-12 object-cover rounded-lg border shadow-sm"
                                                             />
                                                         ) : (
-                                                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                                            <div className="w-12 h-12 rounded-lg bg-muted border flex items-center justify-center">
                                                                 <FileIcon type={file.type} />
                                                             </div>
                                                         )}
@@ -440,14 +636,11 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                                                         ) : null}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="p-3">
+                                                <TableCell className="p-4">
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex flex-col">
-                                                            <span className="font-medium text-sm truncate max-w-[200px]">
+                                                            <span className="font-medium text-sm truncate max-w-[200px] text-foreground">
                                                                 {file.name}
-                                                            </span>
-                                                            <span className="text-xs text-muted-foreground sm:hidden">
-                                                                {formatDate(file.updatedAt)}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-1">
@@ -457,125 +650,26 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                                                             {file.isPublic && (
                                                                 <Link className="h-3 w-3 text-blue-500" />
                                                             )}
+                                                            {file.isFolder && (
+                                                                <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="p-3 text-sm text-muted-foreground hidden md:table-cell">
-                                                    {file.isFolder ? "Folder" : file.type}
+                                                <TableCell className="p-4 text-sm text-muted-foreground">
+                                                    <span className="bg-muted/50 px-2 py-1 rounded-full text-xs">
+                                                        {file.isFolder ? "Folder" : file.type}
+                                                    </span>
                                                 </TableCell>
-                                                <TableCell className="p-3 text-sm hidden sm:table-cell">
+                                                <TableCell className="p-4 text-sm text-foreground">
                                                     {file.isFolder ? "-" : formatFileSize(file.size)}
                                                 </TableCell>
-                                                
-                                                <TableCell className="p-3 text-sm text-muted-foreground hidden lg:table-cell">
-                                                    
+                                                <TableCell className="p-4 text-sm text-muted-foreground">
                                                     {formatDate(file.updatedAt)}
                                                 </TableCell>
-                                                <TableCell className="p-3">
-                                                    <div className="flex items-center justify-center gap-1">
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDownload(file);
-                                                                    }}
-                                                                >
-                                                                    <Download className="h-4 w-4" />
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>Download</TooltipContent>
-                                                        </Tooltip>
-
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                >
-                                                                    <MoreVertical className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end" className="w-48">
-                                                                <DropdownMenuItem
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleStarToggle(file.id);
-                                                                    }}
-                                                                >
-                                                                    {file.isStarred ? (
-                                                                        <StarOff className="h-4 w-4 mr-2" />
-                                                                    ) : (
-                                                                        <Star className="h-4 w-4 mr-2" />
-                                                                    )}
-                                                                    {file.isStarred ? "Remove from starred" : "Add to starred"}
-                                                                </DropdownMenuItem>
-                                                                
-                                                                <DropdownMenuItem
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setEditingFile(file);
-                                                                        setNewName(file.name);
-                                                                    }}
-                                                                >
-                                                                    <Pencil className="h-4 w-4 mr-2" />
-                                                                    Rename
-                                                                </DropdownMenuItem>
-
-                                                                <DropdownMenuItem
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleShareToggle(file.id);
-                                                                    }}
-                                                                >
-                                                                    <Link className="h-4 w-4 mr-2" />
-                                                                    {file.isPublic ? "Make private" : "Make public"}
-                                                                </DropdownMenuItem>
-
-                                                                {file.isPublic && (
-                                                                    <DropdownMenuItem
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleCopyShareLink(file.id);
-                                                                        }}
-                                                                    >
-                                                                        <ClipboardCopy className="h-4 w-4 mr-2" />
-                                                                        Copy share link
-                                                                    </DropdownMenuItem>
-                                                                )}
-
-                                                                <DropdownMenuItem
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleTrashToggle(file.id);
-                                                                    }}
-                                                                >
-                                                                    {file.isTrash ? (
-                                                                        <Undo2 className="h-4 w-4 mr-2" />
-                                                                    ) : (
-                                                                        <Trash2 className="h-4 w-4 mr-2" />
-                                                                    )}
-                                                                    {file.isTrash ? "Restore" : "Move to trash"}
-                                                                </DropdownMenuItem>
-
-                                                                {view === "trash" && (
-                                                                    <DropdownMenuItem
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDelete(file.id);
-                                                                        }}
-                                                                        className="text-red-600 focus:text-red-600"
-                                                                    >
-                                                                        <X className="h-4 w-4 mr-2" />
-                                                                        Delete permanently
-                                                                    </DropdownMenuItem>
-                                                                )}
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                                <TableCell className="p-4">
+                                                    <div className="flex items-center justify-center">
+                                                        <FileActions file={file} />
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -585,16 +679,16 @@ export default function FileList({ userId, isDemo = false , filestate }: FileLis
                             </div>
                         </CardContent>
                     </Card>
-                )}
+                </>
+            )}
 
-                <RenameDialog
-                    file={editingFile}
-                    newName={newName}
-                    setNewName={setNewName}
-                    onRename={handleRename}
-                    onClose={() => setEditingFile(null)}
-                />
-            </CardContent>
-        </Card>
+            <RenameDialog
+                file={editingFile}
+                newName={newName}
+                setNewName={setNewName}
+                onRename={handleRename}
+                onClose={() => setEditingFile(null)}
+            />
+        </div>
     );
 }
